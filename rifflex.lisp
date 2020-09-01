@@ -102,19 +102,19 @@
   (when-let (word (second (cli-args)))
     (when-let (anagrams (anagrams-of word))
       (unless (= 1 (length anagrams))
-        (format t "~%ANAGRAMS of ~a~%~%" word)
+        (format t "~%[ANAGRAMS of ~a]~%~%" word)
         (loop
            :for i :from 1
            :for a :in anagrams
            :do (princ (string-downcase a)) (princ " ")
-           :when (zerop (mod i 5)) :do (terpri)))
+           :when (zerop (mod i 3)) :do (terpri)))
       (terpri))
     (when-let (rhymes (rhymes-of word))
       (unless (= 1 (length rhymes))
-        (format t "~%RHYMES of ~a~%~%" word)
+        (format t "~%[RHYMES of ~a]~%~%" word)
         (let ((format-str (concatenate 'string
                                        "~"
-                                       (format nil "~a" (+ 4 (length word)))
+                                       (format nil "~a" (+ 3 (length word)))
                                        "a ")))
           (loop :for i :from 1
              :for r :in rhymes
