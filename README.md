@@ -5,7 +5,7 @@ A morning script to play with words.
      
      USAGE: rifflex <word>
      
-     ./rifflex wonder
+     $ rifflex wonder
      
      [ANAGRAMS of wonder]
      
