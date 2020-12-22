@@ -5,13 +5,17 @@
 (defparameter *dict* (make-hash-table :test 'equal))
 
 (defun load-cmu-dict ()
-  (with-open-file (input "cmudict" :external-format :latin-1)
-    (loop
-       :for line = (read-line input nil nil)
-       :while line :do
-         (destructuring-bind (key _ . value) (split-sequence #\Space line)
-           (declare (ignore _))
-           (setf (gethash key *dict*) value)))))
+  (let ((path (merge-pathnames
+               (slot-value (asdf:find-system 'rifflex)
+                           'asdf/system::absolute-pathname)
+               "cmudict")))
+    (with-open-file (input path :external-format :latin-1)
+      (loop
+        :for line = (read-line input nil nil)
+        :while line :do
+          (destructuring-bind (key _ . value) (split-sequence #\Space line)
+            (declare (ignore _))
+            (setf (gethash key *dict*) value))))))
 
 (defun  lookup-word (word)
   (gethash (string-upcase word) *dict*))
@@ -30,6 +34,20 @@
        :for w :being :the :hash-key :of *dict*
        :for ph :being :the :hash-value :of *dict*
        :when (rhyme-p phon ph) :collect w)))
+
+(defun puns-of (word)
+  (when-let (phon (lookup-word word))
+    (loop
+      :for w :being :the :hash-key :of *dict*
+      :for ph :being :the :hash-value :of *dict*
+      :when (pun-p phon ph) :collect w)))
+
+(defun pun-p (w1 w2)
+  (and (rhyme-p w1 w2)
+       (or 
+        (equal (car w1) (car w2))
+        (equal (second w1) (car w2))
+        (equal (car w1) (second w2)))))
 
 (defun rhyme-p (w1 w2)
   (perfect-rhyme-p w1 w2))
@@ -120,6 +138,17 @@
              :for r :in rhymes
              :do (format t format-str (string-downcase r)) 
              :when (zerop (mod i 3)) :do (terpri))))
+      (terpri))
+    (when-let (puns (puns-of word))
+      (unless (= 1 (length puns))
+        (format t "~%[PUNS of ~a]~%~%" word)
+        (let ((format-str (concatenate 'string "~"
+                                       (format nil "~a" (+ 3 (length word)))
+                                       "a ")))
+          (loop :for i :from 1
+                :for r :in puns
+                :do (format t format-str (string-downcase r))
+                :when (zerop (mod i 3)) :do (terpri))))
       (terpri))
     (exit))
   (format t "~%USAGE: rifflex <word>~%")
